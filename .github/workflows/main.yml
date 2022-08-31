@@ -1,0 +1,48 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  mysql-8:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: 123456
+          MYSQL_DATABASE: keycloak
+        ports:
+        - 3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3  
+  keycloak:
+    runs-on: ubuntu-latest
+    services:
+      keycloak:
+        image: quay.io/keycloak/keycloak:19.0.1
+        env:
+          KEYCLOAK_ADMIN: admin
+          KEYCLOAK_ADMIN_PASSWORD: admin 
+          KC_DB: mysql
+          KC_DB_URL: jdbc:mysql://mysql:3306
+          KC_DB_USERNAME: root
+          KC_DB_PASSWORD: 123456
+        ports:
+        - 8080:8080
+        options: start-dev --http-enabled=true --http-port=8080 --hostname-strict=false    
+    steps:
+    - name: Verify Keycloak connection
+      run: |
+        sudo apt-get install -y curl
+        curl --location "http://localhost:8080/admin/master/console"
