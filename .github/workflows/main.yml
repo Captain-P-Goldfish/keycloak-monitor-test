@@ -25,7 +25,12 @@ jobs:
           MYSQL_DATABASE: keycloak
         ports:
         - 3306
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3  
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+    steps:
+      - name: Verify MySQL connection from host
+        run: |
+          sudo apt-get install -y mysql-client
+          mysql --host 127.0.0.1 --port 32574 -uroot -ppassword -e "SHOW DATABASES"
   keycloak:
     runs-on: ubuntu-latest
     services:
@@ -33,14 +38,14 @@ jobs:
         image: quay.io/keycloak/keycloak:19.0.1
         env:
           KEYCLOAK_ADMIN: admin
-          KEYCLOAK_ADMIN_PASSWORD: admin 
+          KEYCLOAK_ADMIN_PASSWORD: admin
           KC_DB: mysql
           KC_DB_URL: jdbc:mysql://mysql:3306
           KC_DB_USERNAME: root
           KC_DB_PASSWORD: 123456
         ports:
         - 8080:8080
-        options: start-dev --http-enabled=true --http-port=8080 --hostname-strict=false    
+        options: start-dev --http-enabled=true --http-port=8080 --hostname-strict=false
     steps:
     - name: Verify Keycloak connection
       run: |
